@@ -342,7 +342,9 @@ function sortGlyphsBy(sortingFunction, that) {
 }
 
 function sortByDate(a, b) {
-	return a.date > b.date;
+	// writing a.date doesn't work in chrome
+	// probably because it's bad practice to name things 'date'
+	return a["date"] > b["date"];
 }
 
 function sortByNCodes(a, b) {
