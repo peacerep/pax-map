@@ -21,7 +21,6 @@ var mapG = svg.append("g").attr("id", "mapG"); // g for the map
 var dotG = svg.append("g").attr("id", "dotG"); // g for dots or anything else we plot on top
 var labG = svg.append("g").attr("id", "labG"); // g for country labels
 var popG = svg.append("g").attr("id", "popG"); // g for popup circles
-var popupControlsG = svg.append("g").attr("id", "popupControlsG");
 
 ////////////////////////////////////////////////////////////////////////////////
 // Set up map
@@ -114,11 +113,78 @@ zoomG
 	.attr("y1", d => d.y1)
 	.attr("y2", d => d.y2);
 
-// hidden: popup controls
+////////////////////////////////////////////////////////////////////////////////
+// Set up spiral popup background + controls
+////////////////////////////////////////////////////////////////////////////////
+
+var popupBGC = popG.append("g").attr("id", "popupBGC"); // g for popup background + controls
+
+// background rectangle to cover entire map
+popupBGC
+	.append("rect")
+	.attr("height", h_map)
+	.attr("width", w_map)
+	.attr("id", "bgRect")
+	.on("mouseover", function() {
+		d3.select("#closeButton").classed("hover", true);
+	})
+	.on("mouseout", function() {
+		d3.select("#closeButton").classed("hover", false);
+	})
+	.on("click", function() {
+		// hide popup
+		popG.attr("display", "none");
+		// empty spiral G
+		d3.select("#popupSpiral")
+			.selectAll("*")
+			.remove();
+		// reset timeline by triggering filter update
+		let event = new Event("change");
+		eventHandler.dispatchEvent(event);
+	});
+
+// (X) button to close
+popupBGC
+	.append("circle")
+	.attr("id", "closeButton")
+	.attr("cx", w_map - 40)
+	.attr("cy", 40)
+	.attr("r", 30);
+
+popupBGC
+	.selectAll("line")
+	.data([[[0, 30], [0, 30]], [[0, 30], [30, 0]]])
+	.enter()
+	.append("line")
+	.classed("closeButtonLines", true)
+	.attr("transform", "translate(" + (w_map - 55) + "," + 25 + ")")
+	.attr("x1", d => d[0][0])
+	.attr("x2", d => d[0][1])
+	.attr("y1", d => d[1][0])
+	.attr("y2", d => d[1][1]);
+
+// g in the centre
+var popupCenter = popG
+	.append("g")
+	.attr("id", "popupCenter")
+	.attr("transform", "translate(" + 0.5 * w_map + "," + 0.5 * h_map + ")");
+
+// g for controls
+var popupControls = popupCenter.append("g").attr("id", "popupControls");
+
+// g for spiral (added on click)
+var popupSpiral = popupCenter.append("g").attr("id", "popupSpiral");
+
+// heading - updated dynamically
+popupCenter
+	.append("text")
+	.attr("x", 0)
+	.classed("popupHeading", true);
 
 // add buttons to the side of the circle
-popupControlsG.attr("transform", "translate(-100, -100)");
-var button2 = popupControlsG.append("g").classed("popupSplitButtons", true);
+var popupSplitButtons = popupControls
+	.append("g")
+	.classed("popupSplitButtons", true);
 
 var textOffset = 5;
 var fontSize = 15;
@@ -126,9 +192,9 @@ var fontSize = 15;
 // split by peace process?
 
 // button2.attr("transform", "translate(100,0)");
-button2.attr("transform", "translate(50,0)");
+popupSplitButtons.attr("transform", "translate(50,0)");
 
-var text0 = button2.append("text").attr("y", -55);
+var text0 = popupSplitButtons.append("text").attr("y", -55);
 text0
 	.selectAll("tspan")
 	.data(["SPLIT BY", "PEACE PROCESS?"])
@@ -142,152 +208,33 @@ text0
 	.text(d => d)
 	.style("fill", "#333");
 
-button2
+popupSplitButtons
 	.append("circle")
 	.attr("id", "splitButtonYes")
 	.attr("cy", -20)
 	.attr("r", 20);
 
-button2
+popupSplitButtons
 	.append("text")
 	.style("font-size", fontSize + "px")
 	.text("Yes")
 	.attr("y", -20 + textOffset);
 
-button2
+popupSplitButtons
 	.append("circle")
 	.attr("id", "splitButtonNo")
 	.classed("selected", true)
 	.attr("cy", 25)
 	.attr("r", 20);
 
-button2
+popupSplitButtons
 	.append("text")
 	.style("font-size", fontSize + "px")
 	.text("No")
 	.attr("y", 25 + textOffset);
 
-// var button = popupControlsG.append("g").classed("popupSortButtons", true);
-
-// // Headings
-// button
-// 	.append("text")
-// 	.text("SORT BY:")
-// 	.attr("y", -120)
-// 	.style("fill", "#333");
-
-// // Date
-
-// button
-// 	.append("circle")
-// 	.classed("selected", true)
-// 	.attr("cy", -75)
-// 	.attr("r", 35)
-// 	.on("click", function() {
-// 		d3.selectAll(".popupDateLabel").classed("hidden", false);
-// 		sortGlyphsBy(sortByDate, this);
-// 	});
-
-// button
-// 	.append("text")
-// 	.style("font-size", fontSize + "px")
-// 	.text("Date")
-// 	.attr("y", -75 + textOffset);
-
-// // Number of Codes
-
-// button
-// 	.append("circle")
-// 	.attr("cy", 0)
-// 	.attr("r", 35)
-// 	.on("click", function() {
-// 		d3.selectAll(".popupDateLabel").classed("hidden", true);
-// 		sortGlyphsBy(sortByNCodes, this);
-// 	});
-
-// var text1 = button.append("text").attr("y", textOffset);
-// text1
-// 	.selectAll("tspan")
-// 	.data(["Number", "of Codes"])
-// 	.enter()
-// 	.append("tspan")
-// 	.attr("x", 0)
-// 	.attr("y", text1.attr("y"))
-// 	.attr("dy", function(d, i) {
-// 		return ((i * 2 - 1) * fontSize) / 2;
-// 	})
-// 	.text(d => d);
-
-// // Specific Code
-
-// button
-// 	.append("circle")
-// 	.attr("id", "popupSort3")
-// 	.attr("cy", 75)
-// 	.attr("r", 35)
-// 	.on("click", function() {
-// 		// wiggle dots to show this can't be clicked
-// 		d3.selectAll(".popupSortCodeCircle")
-// 			.transition()
-// 			.duration(100)
-// 			.attr("r", 13)
-// 			.transition()
-// 			.duration(100)
-// 			.attr("r", 10);
-// 	});
-
-// var text2 = button.append("text").attr("y", 75 + textOffset);
-// text2
-// 	.selectAll("tspan")
-// 	.data(["Specific", "Code"])
-// 	.enter()
-// 	.append("tspan")
-// 	.attr("x", 0)
-// 	.attr("y", text2.attr("y"))
-// 	.attr("dy", function(d, i) {
-// 		return ((i * 2 - 1) * fontSize) / 2;
-// 	})
-// 	.text(d => d);
-
-// button
-// 	.append("g")
-// 	.attr("transform", "translate(0, 75)")
-// 	.selectAll("circle")
-// 	.data(codes)
-// 	.enter()
-// 	.append("circle")
-// 	.classed("popupSortCodeCircle", true)
-// 	.attr("r", 10)
-// 	.attr("cx", function(d, i) {
-// 		var alpha = i * (tau / 16) - 0.0625 * tau;
-// 		return Math.cos(alpha) * 55;
-// 	})
-// 	.attr("cy", function(d, i) {
-// 		var alpha = i * (tau / 16) - 0.0625 * tau;
-// 		return Math.sin(alpha) * 55;
-// 	})
-// 	.style("fill", d => codeColour(d))
-// 	.on("click", function(d) {
-// 		d3.selectAll(".popupSortButtons .selected").classed("selected", false);
-// 		d3.select("#popupSort3").classed("selected", true);
-// 		d3.select(this).classed("selected", true);
-// 		d3.selectAll(".popupDateLabel").classed("hidden", true);
-
-// 		d3.selectAll(".popupGlyphG")
-// 			.selectAll(".popupGlyph")
-// 			.sort(function(a, b) {
-// 				return sortByCode(a, b, d);
-// 			})
-// 			.transition()
-// 			.duration(100)
-// 			.attr("transform", function(d, i) {
-// 				var posOnPath = d3
-// 					.select(".popupBackgroundSpiral")
-// 					.node()
-// 					.getPointAtLength((i + 1) * delta);
-// 				return "translate(" + posOnPath.x + "," + posOnPath.y + ")";
-// 			});
-// 	});
+// hide the whole thing
+d3.select("#popG").attr("display", "none");
 
 ////////////////////////////////////////////////////////////////////////////////
 // Initialise event listeners, buttons, etc.
@@ -464,7 +411,10 @@ d3.csv("data/pa-x.csv", parseData)
 // SPIRAL
 
 function drawSpiral() {
-	var hiddenG = popG.append("g").attr("transform", "translate(-600, -600)");
+	var hiddenG = popG
+		.append("g")
+		.attr("transform", "translate(-600, -600)")
+		.attr("id", "hiddenSpiral");
 
 	var start = 0,
 		end = 1,

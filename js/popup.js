@@ -43,68 +43,19 @@ function mouseoutCountry(that, d) {
 }
 
 function clickCountry(con, con_data, world, filters) {
-	// white 70% opaque rectangle to cover entire map
-	var bgRect = d3.select("#popG").append("g");
-	bgRect
-		.append("rect")
-		.attr("height", h_map)
-		.attr("width", w_map)
-		.attr("id", "bgRect")
-		.on("mouseover", function() {
-			d3.select("#closeButton").classed("hover", true);
-		})
-		.on("mouseout", function() {
-			d3.select("#closeButton").classed("hover", false);
-		})
-		.on("click", function() {
-			d3.select("#popG")
-				.selectAll("*")
-				.remove();
+	// show the G
+	d3.select("#popG").attr("display", null);
 
-			// hide controls
-			d3.select("#popupControlsG").attr("transform", "translate(-100, -100)");
-
-			// reset timeline by triggering filter update
-			let event = new Event("change");
-			eventHandler.dispatchEvent(event);
-		});
-
-	// (X) button to close
-	bgRect
-		.append("circle")
-		.attr("id", "closeButton")
-		.attr("cx", w_map - 40)
-		.attr("cy", 40)
-		.attr("r", 30);
-
-	bgRect
-		.selectAll("line")
-		.data([[[0, 30], [0, 30]], [[0, 30], [30, 0]]])
-		.enter()
-		.append("line")
-		.classed("closeButtonLines", true)
-		.attr("transform", "translate(" + (w_map - 55) + "," + 25 + ")")
-		.attr("x1", d => d[0][0])
-		.attr("x2", d => d[0][1])
-		.attr("y1", d => d[1][0])
-		.attr("y2", d => d[1][1]);
-
-	// g centered in svg for all the popup stuff
-	var popG = d3
-		.select("#popG")
-		.append("g")
-		.attr("transform", function(d) {
-			return "translate(" + 0.5 * w_map + "," + 0.5 * h_map + ")";
-		});
-
-	// Spiral
-
-	// --------------------------------------------------
+	// g for the part of the popup that has to be redrawn
+	var g = d3.select("#popupSpiral");
 
 	// initial display
-	drawPopupCircles(con_data, path);
+	drawPopupCircles(con_data);
 
-	// update when filters are changed
+	// when filters are changed:
+	// update spiral
+	// update timeline
+
 	// d3.selectAll(".input").on("change", function() {
 	// 	drawPopupCircles(con_data, path);
 	// });
@@ -120,12 +71,12 @@ function clickCountry(con, con_data, world, filters) {
 		drawPopupCircles(con_data, true, path);
 	});
 
-	function drawPopupCircles(con_data, path) {
+	function drawPopupCircles(con_data) {
 		// get split setting
 		var split = d3.select("#splitButtonYes").classed("selected");
 
-		// empty g
-		popG.selectAll("*").remove();
+		// empty the g before drawing anything new
+		g.selectAll("*").remove();
 
 		// SPLIT ------------------------------------------------------------------
 		if (split) {
@@ -138,11 +89,10 @@ function clickCountry(con, con_data, world, filters) {
 
 			// do this for each peace process separately
 			con_data_process.forEach(function(pr_data, index) {
-				var popG_current = popG.append("g").attr("id", "bubble" + index);
+				var g_bubble = g.append("g").attr("id", "bubble" + index);
 				// create g's for different parts of vis
-				var bgG = popG_current.append("g").classed("popupBgG", true);
-				var spiralG = popG_current.append("g").classed("popupSpiralG", true);
-				var glyphG = popG_current.append("g").classed("popupGlyphG", true);
+				var bgG = g_bubble.append("g").classed("popupBgG", true);
+				var glyphG = g_bubble.append("g").classed("popupGlyphG", true);
 
 				// ---------------------------------------------------------------------
 				// g for each agreement, positioned correctly
@@ -153,13 +103,16 @@ function clickCountry(con, con_data, world, filters) {
 					.append("g")
 					.classed("popupGlyph", true)
 					.attr("transform", function(d, i) {
-						var posOnPath = spiralPath.node().getPointAtLength(i * delta);
+						var posOnPath = spiralPath.node().getPointAtLength((i + 1) * delta);
 						return "translate(" + posOnPath.x + "," + posOnPath.y + ")";
 					});
 
+				// calculate the position and size for the background circle based on
+				// the position of the last (most outward) glyph
+				// add a bit to cover year labels as well
 				var tr = parseTransform(glyph.last().attr("transform")).translate;
 				radii.push({
-					r: Math.sqrt(Math.pow(+tr[0], 2) + Math.pow(+tr[1], 2)) + glyphR
+					r: Math.sqrt(Math.pow(+tr[0], 2) + Math.pow(+tr[1], 2)) + glyphR + 10
 				});
 
 				// draw big background circle
@@ -171,7 +124,7 @@ function clickCountry(con, con_data, world, filters) {
 					.classed("popupBgCircle", true);
 
 				// calculate path for visible part of spiral and draw
-				var len = pr_data.values.length * delta;
+				var len = (pr_data.values.length + 1) * delta;
 				var locs = d3.range(0, len, delta / 2).map(function(d) {
 					var pt = spiralPath.node().getPointAtLength(d);
 					return [pt.x, pt.y];
@@ -184,6 +137,27 @@ function clickCountry(con, con_data, world, filters) {
 					.append("path")
 					.attr("d", pathData)
 					.classed("popupBackgroundSpiral", true);
+
+				// for sorting by date: add year labels
+				glyphG
+					.append("g")
+					.classed("popupDateLabel", true)
+					.attr("transform", function(d) {
+						var posOnPath = spiralPath.node().getPointAtLength(0);
+						return "translate(" + posOnPath.x + "," + posOnPath.y + ")";
+					})
+					.append("text")
+					.text(d3.min(pr_data.values, d => d.year));
+
+				glyphG
+					.append("g")
+					.classed("popupDateLabel", true)
+					.attr("transform", function(d) {
+						var posOnPath = spiralPath.node().getPointAtLength(len);
+						return "translate(" + posOnPath.x + "," + posOnPath.y + ")";
+					})
+					.append("text")
+					.text(d3.max(pr_data.values, d => d.year));
 				// ---------------------------------------------------------------------
 			});
 
@@ -204,9 +178,8 @@ function clickCountry(con, con_data, world, filters) {
 		// NO SPLIT ----------------------------------------------------------------
 		else {
 			// create g's for different parts of vis
-			var bgG = popG.append("g").classed("popupBgG", true);
-			var spiralG = popG.append("g").classed("popupSpiralG", true);
-			var glyphG = popG.append("g").classed("popupGlyphG", true);
+			var bgG = g.append("g").classed("popupBgG", true);
+			var glyphG = g.append("g").classed("popupGlyphG", true);
 
 			// g for each agreement, positioned correctly
 			var glyph = glyphG
@@ -220,9 +193,11 @@ function clickCountry(con, con_data, world, filters) {
 					return "translate(" + posOnPath.x + "," + posOnPath.y + ")";
 				});
 
+			// calculate radius of background circle based on position of last glyph
+			// add 10px to ensure year label fits
 			var tr = parseTransform(glyph.last().attr("transform")).translate;
 			var outercircle_r =
-				Math.sqrt(Math.pow(+tr[0], 2) + Math.pow(+tr[1], 2)) + glyphR;
+				Math.sqrt(Math.pow(+tr[0], 2) + Math.pow(+tr[1], 2)) + glyphR + 10;
 
 			// draw big background circle
 			bgG
@@ -233,7 +208,7 @@ function clickCountry(con, con_data, world, filters) {
 				.classed("popupBgCircle", true);
 
 			// calculate path for visible part of spiral and draw
-			var len = (con_data.length + 1.5) * delta;
+			var len = (con_data.length + 1) * delta;
 			var locs = d3.range(0, len, delta / 2).map(function(d) {
 				var pt = spiralPath.node().getPointAtLength(d);
 				return [pt.x, pt.y];
@@ -275,23 +250,20 @@ function clickCountry(con, con_data, world, filters) {
 		// BOTH --------------------------------------------------------------------
 
 		// heading
-		popG
-			.append("text")
-			.attr("x", 0)
+		d3.select(".popupHeading")
 			.attr("y", offsetHeading)
-			.classed("popupHeading", true)
 			.text("Agreements signed by " + con);
 
-		// show controls
-		d3.select("#popupControlsG").attr(
+		// move controls
+		d3.select("#popupControls").attr(
 			"transform",
-			"translate(" + (w_map / 2 + offsetControls) + "," + h_map / 2 + ")"
+			"translate(" + offsetControls + ",0)"
 		);
 
-		// draw invisible circle for info on mouseover
-		// glyph
+		// draw glyphs
 		var glyph = d3.selectAll(".popupGlyph");
 
+		// draw invisible circle for info on mouseover
 		glyph
 			.append("circle")
 			.attr("fill", "transparent")
