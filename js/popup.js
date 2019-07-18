@@ -42,39 +42,33 @@ function mouseoutCountry(that, d) {
 	// 	.attr("d", arcMin);
 }
 
-function clickCountry(con, con_data, world, filters) {
+// function clickCountry(con, con_data, world, filters) {
+
+function drawPopupCircles(con_data, con) {
 	// show the G
-	d3.select("#popG").attr("display", null);
+	d3.select("#popG").classed("hidden", false);
 
 	// g for the part of the popup that has to be redrawn
 	var g = d3.select("#popupSpiral");
 
-	// initial display
-	drawPopupCircles(con_data);
-
-	// when filters are changed:
-	// update spiral
-	// update timeline
-
-	// d3.selectAll(".input").on("change", function() {
-	// 	drawPopupCircles(con_data, path);
-	// });
+	// get split setting
+	var split = d3.select("#splitButtonYes").classed("selected");
 
 	d3.select("#splitButtonNo").on("click", function() {
 		d3.select(this).classed("selected", true);
 		d3.select("#splitButtonYes").classed("selected", false);
-		drawPopupCircles(con_data, false, path);
+		redraw(false);
+		// drawPopupCircles(con_data, con);
 	});
 	d3.select("#splitButtonYes").on("click", function() {
 		d3.select(this).classed("selected", true);
 		d3.select("#splitButtonNo").classed("selected", false);
-		drawPopupCircles(con_data, true, path);
+		redraw(true);
 	});
 
-	function drawPopupCircles(con_data) {
-		// get split setting
-		var split = d3.select("#splitButtonYes").classed("selected");
+	redraw(split);
 
+	function redraw(split) {
 		// empty the g before drawing anything new
 		g.selectAll("*").remove();
 

@@ -234,7 +234,9 @@ popupSplitButtons
 	.attr("y", 25 + textOffset);
 
 // hide the whole thing
-d3.select("#popG").attr("display", "none");
+d3.select("#popG").classed("hidden", true);
+
+var selectedCon = "";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Initialise event listeners, buttons, etc.
@@ -333,7 +335,7 @@ d3.csv("data/pa-x.csv", parseData)
 		resetFilters();
 
 		// Draw timeline
-		initTimeline(data);
+		initTimeline(data, [minYear, maxYear]);
 
 		// Load geojson world map
 		d3.json("data/world-110m-custom.geojson")
@@ -362,15 +364,15 @@ d3.csv("data/pa-x.csv", parseData)
 							cons: { any: true, cons: [d.properties.name] },
 							codes: getSelectedCodes()
 						};
-						clickCountry(
-							d.properties.name,
+						drawPopupCircles(
 							filterData(
 								locdata[locdata.findIndex(e => e.con == d.properties.name)]
 									.agts,
 								filters
 							),
-							world
+							d.properties.name
 						);
+						selectedCon = d.properties.name;
 						// update timeline
 						initTimeline(filterData(data, filters), filters.year);
 					});
@@ -378,6 +380,8 @@ d3.csv("data/pa-x.csv", parseData)
 				// Match data points with locations on the map and draw dot map
 				const locdata = makeDotmapData(data, world);
 				drawDotmap(locdata);
+
+				console.log(data, locdata);
 
 				// Listen for changes in filters
 				d3.selectAll(".input").on("change", function() {
@@ -387,7 +391,6 @@ d3.csv("data/pa-x.csv", parseData)
 						codes: getSelectedCodes()
 					};
 
-					initTimeline(filterData(data, filters), filters.year);
 					drawDotmap(
 						locdata.map(function(d) {
 							return {
@@ -398,6 +401,21 @@ d3.csv("data/pa-x.csv", parseData)
 							};
 						})
 					);
+
+					// check if spiral is visible and redraw if yes
+					if (!popG.classed("hidden")) {
+						filters.cons.cons = [selectedCon];
+						drawPopupCircles(
+							filterData(
+								locdata[locdata.findIndex(e => e.con == selectedCon)].agts,
+								filters
+							),
+							selectedCon
+						);
+						initTimeline(filterData(data, filters), filters.year);
+					} else {
+						initTimeline(filterData(data, filters), filters.year);
+					}
 				});
 			})
 			.catch(function(error) {

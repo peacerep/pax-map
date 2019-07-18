@@ -2,7 +2,7 @@
 // maybe split into init and update function
 // add filters
 
-function initTimeline(data) {
+function initTimeline(data, years) {
 	// empty div
 	const chart = d3.select("#timeline .charts");
 	chart.selectAll("*").remove();
@@ -20,8 +20,8 @@ function initTimeline(data) {
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 		.attr("id", "g-timeline");
 
-	var minDate = parseDate(minYear - 1 + "-06-30");
-	var maxDate = parseDate(maxYear + "-06-30");
+	var minDate = parseDate(years[0] - 1 + "-06-30");
+	var maxDate = parseDate(years[1] + "-06-30");
 
 	// create time scale and x axis
 	var xScale = d3
@@ -67,7 +67,7 @@ function initTimeline(data) {
 		agtSpacing = 0;
 
 	// calculate agtWidth
-	var agtWidth = width / (maxYear - minYear);
+	var agtWidth = width / (years[1] - years[0]);
 
 	// Group agreements by Year (create an array of objects whose key is the
 	// year and value is an array of objects (one per agreement))
@@ -159,7 +159,7 @@ function initTimeline(data) {
 
 	var flatDataLines = [];
 
-	for (var year = minYear; year <= maxYear; year++) {
+	for (var year = years[0]; year <= years[1]; year++) {
 		var index = dataLines.findIndex(function(d) {
 			return d.key == year;
 		});
