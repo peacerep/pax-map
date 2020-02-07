@@ -133,7 +133,7 @@ popupBGC
 	})
 	.on("click", function() {
 		// hide popup
-		popG.attr("display", "none");
+		popG.classed("hidden", true);
 		// empty spiral G
 		d3.select("#popupSpiral")
 			.selectAll("*")
