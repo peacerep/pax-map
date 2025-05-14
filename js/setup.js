@@ -303,7 +303,7 @@ var timeSlider = initSlider();
 // Load data
 ////////////////////////////////////////////////////////////////////////////////
 
-d3.csv("data/pa-x.csv", parseData)
+d3.csv("data/pax_all_agreements_data_v9.csv", parseData)
 	.then(function(data) {
 		console.log(data);
 

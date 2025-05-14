@@ -11,7 +11,7 @@ var delta = popupGlyphR * 2.1; // distance between glyphs on spiral
 
 // Year range of the data
 const minYear = 1990;
-const maxYear = 2019;
+const maxYear = 2025;
 
 // Date parsers & formatters
 var parseDate = d3.timeParse("%Y-%m-%d"); //e.g. 2011-12-05
@@ -22,7 +22,7 @@ var formatYear = d3.timeFormat("%Y");
 // Codes (long version)
 // This a subset of 8 codes from the many more included in PA-X
 const codesLong = {
-	HrFra: "Human Rights Framework",
+	HrBor: "Human Rights Framework",
 	Mps: "Power Sharing: Military",
 	Eps: "Power Sharing: Economic",
 	Terps: "Power Sharing: Territorial",
@@ -37,7 +37,7 @@ const codes = Object.keys(codesLong);
 
 // Range of score for each code
 const codesRange = {
-	HrFra: [0, 3],
+	HrBor: [0, 3],
 	Mps: [0, 3],
 	Eps: [0, 3],
 	Terps: [0, 3],
@@ -50,7 +50,7 @@ const codesRange = {
 // Colour scale for codes
 const codeColour = d3
 	.scaleOrdinal()
-	.domain(["Pol", "Polps", "Terps", "Eps", "Mps", "HrFra", "GeWom", "TjMech"])
+	.domain(["Pol", "Polps", "Terps", "Eps", "Mps", "HrBor", "GeWom", "TjMech"])
 	.range([
 		"#479B7F",
 		"#B5B867",
@@ -171,7 +171,7 @@ function parseData(d) {
 		Eps: +d.Eps,
 		Mps: +d.Mps,
 		Pol: +d.Pol,
-		HrFra: +d.HrFra,
+		HrBor: +d.HrBor,
 		TjMech: +d.TjMech
 	};
 }
