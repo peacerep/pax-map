@@ -14,9 +14,11 @@ const minYear = 1990;
 const maxYear = 2025;
 
 // Date parsers & formatters
-var parseDate = d3.timeParse("%Y-%m-%d"); //e.g. 2011-12-05
+// var parseDate = d3.timeParse("%Y-%m-%d"); //e.g. 2011-12-05
+var parseDate = d3.timeParse("%d/%m/%Y");
 var parseYear = d3.timeParse("%Y");
-var formatDate = d3.timeFormat("%d %B %Y");
+// var formatDate = d3.timeFormat("%d %B %Y");
+var formatDate = d3.timeFormat("%d/%m/%Y");
 var formatYear = d3.timeFormat("%Y");
 
 // Codes (long version)
@@ -154,7 +156,8 @@ const agreementTypes = {
 // reading in data + preprocessing rows
 function parseData(d) {
 	return {
-		year: +d.Year,
+		// year: +d.Year,
+		year: +d.Dat.split('/')[2],
 		date: parseDate(d.Dat),
 		id: +d.AgtId,
 		con: splitConNames(d.Con),
@@ -626,7 +629,7 @@ function agtDetails(d) {
 			d.id +
 			'" target = "_blank">View Coding Detail</a>' +
 			"<table><tr><td>Date Signed:</td><td>" +
-			formatDate(d.date) +
+			(d.date ? formatDate(d.date) : 'Unknown') +
 			"</td></tr><tr><td>Country/Entity:</td><td>" +
 			printArray(d.con) +
 			"</td></tr><tr><td>Process:</td><td>" +

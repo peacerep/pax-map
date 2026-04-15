@@ -303,10 +303,10 @@ var timeSlider = initSlider();
 // Load data
 ////////////////////////////////////////////////////////////////////////////////
 
-d3.csv("data/pax_all_agreements_data_v9.csv", parseData)
+d3.csv("data/pax_data_v10.csv", parseData)
 	.then(function(data) {
 		console.log(data);
-
+		
 		// Add countries/entities to dropdown
 		var cons = getConNames(data);
 		d3.select("#conDropdown")

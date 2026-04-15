@@ -11,6 +11,7 @@ The "Visualizing Peace" project is a visual interface to the Peace Agreements Da
 
 ***
 ### Data Updates
-1. Renamed HrFra -> HrBor, and maxYear = 2025 in `globals.js`.
-2. Add a `Year` column in source csv next to `Dat`
-3. importing csv is in `setup.js`.
+1. Import new csv in `setup.js`. File name: `pax_data_vX.csv'.
+2. Update data version in `index.html` line 40.
+
+Important note: agreements within a country is positioned randomly.

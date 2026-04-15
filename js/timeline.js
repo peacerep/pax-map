@@ -20,8 +20,10 @@ function initTimeline(data, years) {
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 		.attr("id", "g-timeline");
 
-	var minDate = parseDate(years[0] - 1 + "-06-30");
-	var maxDate = parseDate(years[1] + "-06-30");
+	// var minDate = parseDate(years[0] - 1 + "-06-30");
+	// var maxDate = parseDate(years[1] + "-06-30");
+	var minDate = new Date(years[0] - 1, 5, 30);
+	var maxDate = new Date(years[1], 5, 30);
 
 	// create time scale and x axis
 	var xScale = d3
